@@ -1,10 +1,17 @@
 package handler
 
 import (
+	"android/internal/service"
+
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
+	services *service.Service
+}
+
+func NewHandler(service *service.Service) *Handler {
+	return &Handler{services: service}
 }
 
 func (h *Handler) InitRoute() *mux.Router {
