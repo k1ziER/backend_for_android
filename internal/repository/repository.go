@@ -1,8 +1,13 @@
 package repository
 
-import "github.com/jmoiron/sqlx"
+import (
+	"android/internal/domain"
+
+	"github.com/jmoiron/sqlx"
+)
 
 type User interface {
+	CreateUser(user domain.User) (int, error)
 }
 
 type Repository struct {
@@ -10,5 +15,7 @@ type Repository struct {
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
-	return &Repository{}
+	return &Repository{
+		User: NewAuthPostgres(db),
+	}
 }

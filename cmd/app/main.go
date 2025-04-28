@@ -5,26 +5,27 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 
 	"android/internal/config"
 	"android/internal/delivery/http/handler"
 	"android/internal/repository"
 	"android/internal/server"
 	"android/internal/service"
-	"log"
 
 	"github.com/spf13/viper"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 	err := config.InitConfig()
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
 	err = godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
@@ -36,7 +37,7 @@ func main() {
 		SSLMode:  viper.GetString("db.sslmode"),
 	})
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
 	repos := repository.NewRepository(db)
@@ -46,6 +47,6 @@ func main() {
 	srv := &server.Server{}
 	err = srv.Run(viper.GetString("8000"), handlers.InitRoute())
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 }

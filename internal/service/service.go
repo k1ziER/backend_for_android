@@ -1,8 +1,12 @@
 package service
 
-import "android/internal/repository"
+import (
+	"android/internal/domain"
+	"android/internal/repository"
+)
 
 type User interface {
+	CreateUser(user domain.User) (int, error)
 }
 
 type Service struct {
@@ -10,5 +14,7 @@ type Service struct {
 }
 
 func NewService(repo *repository.Repository) *Service {
-	return &Service{}
+	return &Service{
+		User: NewAuthService(repo.User),
+	}
 }
