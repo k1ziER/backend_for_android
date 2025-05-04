@@ -2,6 +2,7 @@ package handler
 
 import (
 	"android/internal/service"
+	"fmt"
 
 	"github.com/gorilla/mux"
 )
@@ -17,11 +18,10 @@ func NewHandler(service *service.Service) *Handler {
 func (h *Handler) InitRoute() *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/users/", GetUsers)
-	router.HandleFunc("/user/{id:[0-9]+}", GetUser)
-	router.HandleFunc("/createUser/", SetUser)
-	router.HandleFunc("/SignUser/", SignUser)
+	router.HandleFunc("/user/{id:[0-9]+}", h.GetUser)
+	router.HandleFunc("/createUser/", h.SetUser)
 	router.HandleFunc("/editUsers/", PatchUser)
 	router.HandleFunc("/deleteUsers/", DeleteUser)
-
+	fmt.Println("Start server at :8080")
 	return router
 }

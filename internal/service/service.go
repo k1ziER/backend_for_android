@@ -7,6 +7,7 @@ import (
 
 type User interface {
 	CreateUser(user domain.User) (int, error)
+	GenerateToken(login, password string) (string, error)
 }
 
 type Service struct {

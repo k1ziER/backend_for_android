@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -11,6 +12,7 @@ type Server struct {
 }
 
 func (s *Server) Run(port string, handler http.Handler) error {
+	fmt.Println("Start server at :8080")
 	s.httpServer = &http.Server{
 		Addr:           ":" + port,
 		Handler:        handler,
@@ -18,6 +20,7 @@ func (s *Server) Run(port string, handler http.Handler) error {
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 	}
+	fmt.Println("Start server at :8080")
 	return s.httpServer.ListenAndServe()
 }
 

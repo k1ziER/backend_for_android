@@ -8,6 +8,7 @@ import (
 
 type User interface {
 	CreateUser(user domain.User) (int, error)
+	GetUser(login, password string) (domain.User, error)
 }
 
 type Repository struct {

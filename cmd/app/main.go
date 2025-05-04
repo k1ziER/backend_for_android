@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -44,9 +45,13 @@ func main() {
 	service := service.NewService(repos)
 	handlers := handler.NewHandler(service)
 
+	fmt.Println("Start server at :8080")
 	srv := &server.Server{}
-	err = srv.Run(viper.GetString("8000"), handlers.InitRoute())
+
+	err = srv.Run(viper.GetString("port"), handlers.InitRoute())
 	if err != nil {
+		fmt.Println("Start server at :8080")
 		logrus.Fatal(err)
 	}
+	fmt.Println("Start server at :8080")
 }
