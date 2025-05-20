@@ -6,17 +6,12 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
-)
-
-// добавить в файл окружения .env
-const (
-	solt       = "earagdrd4153426dsfdg"
-	signingKey = "kjda%sfj#j413524#jgls"
-	tokenTTL   = 12 * time.Hour
 )
 
 type tokenClaims struct {
@@ -37,12 +32,31 @@ func (s *AuthService) CreateUser(user domain.User) (int, error) {
 	return s.repo.CreateUser(user)
 }
 
-func (s *AuthService) GenerateToken(login, password string) (string, error) {
-	user, err := s.repo.SignIn(login, s.generatePasswordHash(password))
+func (s *AuthService) SignIn(login, password string) (domain.User, error) {
+	hashPassword := s.generatePasswordHash(password)
+	user, err := s.repo.SignIn(login, hashPassword)
 	if err != nil {
 		logrus.Println(err)
-		return "", err
+		return user, err
 	}
+	return user, nil
+}
+
+func (s *AuthService) GetUser(id int) (domain.User, error) {
+	user, err := s.repo.GetUser(id)
+	if err != nil {
+		logrus.Println(err)
+	}
+	return user, err
+}
+
+func (s *AuthService) GenerateToken(user domain.User) (string, error) {
+	err := godotenv.Load()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	const tokenTTL = 12 * time.Hour
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		StandardClaims: jwt.StandardClaims{
@@ -52,15 +66,19 @@ func (s *AuthService) GenerateToken(login, password string) (string, error) {
 		UserId: user.Id,
 	})
 
-	return token.SignedString([]byte(signingKey))
+	return token.SignedString([]byte(os.Getenv("SIGN_KEY")))
 }
 
 func (s *AuthService) ParseToken(accessToken string) (int, error) {
+	err := godotenv.Load()
+	if err != nil {
+		logrus.Fatal(err)
+	}
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
-		return []byte(signingKey), nil
+		return []byte(os.Getenv("SIGN_KEY")), nil
 	})
 	if err != nil {
 		return 0, err
@@ -75,8 +93,13 @@ func (s *AuthService) ParseToken(accessToken string) (int, error) {
 }
 
 func (s *AuthService) generatePasswordHash(password string) string {
+	err := godotenv.Load()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
 	hash := sha1.New()
 	hash.Write([]byte(password))
 
-	return fmt.Sprintf("%x", hash.Sum([]byte(solt)))
+	return fmt.Sprintf("%x", hash.Sum([]byte(os.Getenv("SOLT"))))
 }

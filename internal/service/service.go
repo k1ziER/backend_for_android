@@ -6,9 +6,11 @@ import (
 )
 
 type User interface {
+	SignIn(login, password string) (domain.User, error)
 	CreateUser(user domain.User) (int, error)
-	GenerateToken(login, password string) (string, error)
+	GenerateToken(user domain.User) (string, error)
 	ParseToken(token string) (int, error)
+	GetUser(id int) (domain.User, error)
 }
 
 type Service struct {

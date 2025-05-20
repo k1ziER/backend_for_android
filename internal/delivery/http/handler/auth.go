@@ -8,21 +8,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type signInInput struct {
-	Email    string `json: "email" binding:"required"`
-	Password string `json: "password" binding:"required"`
-}
-
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
-	input := signInInput{}
+	input := domain.User{}
 	//logrus.Println("123")
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&input); err != nil {
 		newErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	signIn, err := h.services.SignIn(input.Email, input.Password)
+	if err != nil {
+		newErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-	token, err := h.services.User.GenerateToken(input.Email, input.Password)
+	token, err := h.services.User.GenerateToken(signIn)
 	if err != nil {
 		newErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

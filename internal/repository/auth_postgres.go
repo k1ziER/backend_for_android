@@ -38,3 +38,14 @@ func (r *AuthPostgres) SignIn(login, password string) (domain.User, error) {
 
 	return user, err
 }
+
+func (r *AuthPostgres) GetUser(id int) (domain.User, error) {
+	var user domain.User
+	query := fmt.Sprintf("SELECT userName, surname, email, is_admin, birthday, age FROM %s WHERE id=$1 ", peoplesTable)
+	err := r.db.Get(&user, query, id)
+	if err != nil {
+		logrus.Println(err)
+	}
+
+	return user, err
+}

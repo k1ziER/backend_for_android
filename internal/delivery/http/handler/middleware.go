@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 )
@@ -14,7 +13,7 @@ const (
 
 func (h *Handler) userIdentity(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Все заголовки:", r.Header)
+		//fmt.Println("Все заголовки:", r.Header)
 		header := r.Header.Get(authorizationHeader)
 
 		if header == "" {

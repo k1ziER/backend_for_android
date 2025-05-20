@@ -21,9 +21,9 @@ func (h *Handler) InitRoute() *mux.Router {
 
 	apiRouter := router.PathPrefix("/api/").Subrouter()
 	apiRouter.Use(h.userIdentity)
+	apiRouter.HandleFunc("/user/", h.GetUser)
 	apiRouter.HandleFunc("/users/", h.GetUsers)
-	apiRouter.HandleFunc("/user/{id:[0-9]+}", h.GetUser)
-	apiRouter.HandleFunc("/editUsers/", h.PatchUser)
+	apiRouter.HandleFunc("/editUser/", h.PatchUser)
 	apiRouter.HandleFunc("/deleteUsers/", h.DeleteUser)
 
 	return router
