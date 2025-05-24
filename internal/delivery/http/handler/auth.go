@@ -16,7 +16,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		newErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	signIn, err := h.services.SignIn(input.Email, input.Password)
+	signIn, err := h.services.SignIn(input.Login, input.Password)
 	if err != nil {
 		newErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
@@ -56,14 +56,19 @@ func (h *Handler) SetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.services.User.CreateUser(input)
+	us, err := h.services.User.CreateUser(input)
+	if err != nil {
+		newErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	token, err := h.services.User.GenerateToken(us)
 	if err != nil {
 		newErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"id": id,
+		"token": token,
 	})
 	go func(input domain.User) {
 		data, err := json.Marshal(&input)

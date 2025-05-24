@@ -16,21 +16,20 @@ func NewAuthPostgres(db *sqlx.DB) *AuthPostgres {
 	return &AuthPostgres{db: db}
 }
 
-func (r *AuthPostgres) CreateUser(user domain.User) (int, error) {
-	var id int
-	query := fmt.Sprintf("INSERT INTO %s (userName, surname, email, password_hash, is_admin, birthday, age) values ($1, $2, $3, $4, $5, $6, $7) RETURNING id", peoplesTable)
-	row := r.db.QueryRow(query, user.UserName, user.Surname, user.Email, user.Password, user.IsAdmin, user.Birthday, user.Age)
-	err := row.Scan(&id)
+func (r *AuthPostgres) CreateUser(user domain.User) (domain.User, error) {
+	query := fmt.Sprintf("INSERT INTO %s (userName, loginn, surname, email, password_hash) values ($1, $2, $3, $4, $5) RETURNING id", peoplesTable)
+	row := r.db.QueryRow(query, user.UserName, user.Login, user.Surname, user.Email, user.Password)
+	err := row.Scan(&user.Id)
 	if err != nil {
 		logrus.Println(err)
-		return 0, err
+		return user, err
 	}
-	return id, err
+	return user, err
 }
 
 func (r *AuthPostgres) SignIn(login, password string) (domain.User, error) {
 	var user domain.User
-	query := fmt.Sprintf("SELECT id FROM %s WHERE email=$1 AND password_hash=$2", peoplesTable)
+	query := fmt.Sprintf("SELECT id FROM %s WHERE loginn=$1 AND password_hash=$2", peoplesTable)
 	err := r.db.Get(&user, query, login, password)
 	if err != nil {
 		logrus.Println(err)
@@ -41,7 +40,7 @@ func (r *AuthPostgres) SignIn(login, password string) (domain.User, error) {
 
 func (r *AuthPostgres) GetUser(id int) (domain.User, error) {
 	var user domain.User
-	query := fmt.Sprintf("SELECT userName, surname, email, is_admin, birthday, age FROM %s WHERE id=$1 ", peoplesTable)
+	query := fmt.Sprintf("SELECT userName, loginn, surname, email FROM %s WHERE id=$1 ", peoplesTable)
 	err := r.db.Get(&user, query, id)
 	if err != nil {
 		logrus.Println(err)

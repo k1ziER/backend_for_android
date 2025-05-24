@@ -7,7 +7,7 @@ import (
 )
 
 type User interface {
-	CreateUser(user domain.User) (int, error)
+	CreateUser(user domain.User) (domain.User, error)
 	SignIn(login, password string) (domain.User, error)
 	GetUser(id int) (domain.User, error)
 }
