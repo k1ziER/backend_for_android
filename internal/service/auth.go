@@ -1,12 +1,13 @@
 package service
 
 import (
-	"android/internal/domain"
-	"android/internal/repository"
+	"android/pkg/domain"
+	"android/pkg/ports"
 	"crypto/sha1"
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -19,17 +20,35 @@ type tokenClaims struct {
 	UserId int `json:"user_id"`
 }
 
+type UserBlackList struct {
+	UserId map[int]bool
+	mu     sync.RWMutex
+}
 type AuthService struct {
-	repo repository.User
+	repo      ports.UserRepo
+	blackList ports.UserBlackList
 }
 
-func NewAuthService(repo repository.User) *AuthService {
-	return &AuthService{repo: repo}
+func NewTokenBlacklist() *UserBlackList {
+	return &UserBlackList{
+		UserId: make(map[int]bool),
+	}
+}
+
+func NewAuthService(repo ports.UserRepo, blackList ports.UserBlackList) *AuthService {
+	return &AuthService{
+		repo:      repo,
+		blackList: blackList,
+	}
 }
 
 func (s *AuthService) CreateUser(user domain.User) (domain.User, error) {
 	user.Password = s.generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user)
+}
+
+func (s *AuthService) UpdateUser(user domain.User) error {
+	return s.repo.UpdateUser(user)
 }
 
 func (s *AuthService) SignIn(login, password string) (domain.User, error) {
@@ -48,6 +67,16 @@ func (s *AuthService) GetUser(id int) (domain.User, error) {
 		logrus.Println(err)
 	}
 	return user, err
+}
+
+func (s *AuthService) DeleteUser(id int) error {
+	err := s.repo.DeleteUser(id)
+	if err != nil {
+		logrus.Println(err)
+	}
+	s.blackList.AddUserBlackList(id)
+
+	return err
 }
 
 func (s *AuthService) GenerateToken(user domain.User) (string, error) {
@@ -102,4 +131,30 @@ func (s *AuthService) generatePasswordHash(password string) string {
 	hash.Write([]byte(password))
 
 	return fmt.Sprintf("%x", hash.Sum([]byte(os.Getenv("SOLT"))))
+}
+
+func (tb *UserBlackList) AddUserBlackList(userId int) {
+	tb.mu.Lock()
+	defer tb.mu.Unlock()
+
+	tb.UserId[userId] = true
+}
+
+func (tb *UserBlackList) IsUserBlackListed(userId int) bool {
+	tb.mu.RLock()
+	defer tb.mu.RUnlock()
+	return tb.UserId[userId]
+}
+
+func (s *AuthService) CheckToken(token string, blacklist ports.UserBlackList) bool {
+	userId, err := s.ParseToken(token)
+	if err != nil {
+		logrus.Println(err)
+		return false
+	}
+
+	if blacklist.IsUserBlackListed(userId) {
+		return false
+	}
+	return true
 }

@@ -7,11 +7,15 @@ import (
 )
 
 type Handler struct {
-	services *service.Service
+	services  *service.Service
+	blackList *service.UserBlackList
 }
 
-func NewHandler(service *service.Service) *Handler {
-	return &Handler{services: service}
+func NewHandler(service *service.Service, blackList *service.UserBlackList) *Handler {
+	return &Handler{
+		services:  service,
+		blackList: blackList,
+	}
 }
 
 func (h *Handler) InitRoute() *mux.Router {
@@ -22,6 +26,7 @@ func (h *Handler) InitRoute() *mux.Router {
 	apiRouter := router.PathPrefix("/api/").Subrouter()
 	apiRouter.Use(h.userIdentity)
 	apiRouter.HandleFunc("/user/", h.GetUser)
+	apiRouter.HandleFunc("/userEdit/", h.PatchUser)
 	apiRouter.HandleFunc("/deleteUsers/", h.DeleteUser)
 
 	return router

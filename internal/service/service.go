@@ -1,24 +1,16 @@
 package service
 
 import (
-	"android/internal/domain"
 	"android/internal/repository"
+	"android/pkg/ports"
 )
 
-type User interface {
-	SignIn(login, password string) (domain.User, error)
-	CreateUser(user domain.User) (domain.User, error)
-	GenerateToken(user domain.User) (string, error)
-	ParseToken(token string) (int, error)
-	GetUser(id int) (domain.User, error)
-}
-
 type Service struct {
-	User
+	User ports.UserService
 }
 
-func NewService(repo *repository.Repository) *Service {
+func NewService(repo *repository.Repository, blackList *UserBlackList) *Service {
 	return &Service{
-		User: NewAuthService(repo.User),
+		User: NewAuthService(repo.User, blackList),
 	}
 }

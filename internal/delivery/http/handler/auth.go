@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"android/internal/domain"
+	"android/pkg/domain"
 	"encoding/json"
 	"net/http"
 
@@ -16,7 +16,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		newErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	signIn, err := h.services.SignIn(input.Login, input.Password)
+	signIn, err := h.services.User.SignIn(input.Login, input.Password)
 	if err != nil {
 		newErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

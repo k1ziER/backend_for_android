@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"android/internal/domain"
+	"android/pkg/domain"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -17,8 +17,8 @@ func NewAuthPostgres(db *sqlx.DB) *AuthPostgres {
 }
 
 func (r *AuthPostgres) CreateUser(user domain.User) (domain.User, error) {
-	query := fmt.Sprintf("INSERT INTO %s (userName, loginn, surname, email, password_hash) values ($1, $2, $3, $4, $5) RETURNING id", peoplesTable)
-	row := r.db.QueryRow(query, user.UserName, user.Login, user.Surname, user.Email, user.Password)
+	query := fmt.Sprintf("INSERT INTO %s (userName, loginn, email, password_hash) values ($1, $2, $3, $4) RETURNING id", peoplesTable)
+	row := r.db.QueryRow(query, user.UserName, user.Login, user.Email, user.Password)
 	err := row.Scan(&user.Id)
 	if err != nil {
 		logrus.Println(err)
@@ -47,4 +47,28 @@ func (r *AuthPostgres) GetUser(id int) (domain.User, error) {
 	}
 
 	return user, err
+}
+
+func (r *AuthPostgres) UpdateUser(user domain.User) error {
+	query := fmt.Sprintf(`UPDATE %s SET userName = $1,
+	 surname = $2,
+	 email = $3,
+	 loginn = $4
+	 WHERE id = $5`, peoplesTable)
+	_, err := r.db.Exec(query, user.UserName, user.Surname, user.Email, user.Login, user.Id)
+	if err != nil {
+		logrus.Println(err)
+		return err
+	}
+	return err
+}
+
+func (r *AuthPostgres) DeleteUser(id int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1 ", peoplesTable)
+	_, err := r.db.Exec(query, id)
+	if err != nil {
+		logrus.Println(err)
+	}
+
+	return err
 }

@@ -40,9 +40,10 @@ func main() {
 		logrus.Fatal(err)
 	}
 
+	blacklist := service.NewTokenBlacklist()
 	repos := repository.NewRepository(db)
-	service := service.NewService(repos)
-	handlers := handler.NewHandler(service)
+	service := service.NewService(repos, blacklist)
+	handlers := handler.NewHandler(service, blacklist)
 
 	srv := &server.Server{}
 
