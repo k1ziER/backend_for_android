@@ -4,6 +4,7 @@ import (
 	"android/pkg/domain"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -75,6 +76,30 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"DeletedId": id,
+		"deletedId": id,
+	})
+}
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(userCtx)
+	id, _ := userId.(int)
+
+	header := r.Header.Get(authorizationHeader)
+	if header == "" {
+		newErrorResponse(w, http.StatusUnauthorized, "empty auth header")
+		return
+	}
+	headerParts := strings.Split(header, " ")
+	if len(headerParts) != 2 {
+		newErrorResponse(w, http.StatusUnauthorized, "invalid auth header")
+		return
+	}
+
+	token := headerParts[1]
+	h.services.User.Logout(token)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"logout": id,
 	})
 }

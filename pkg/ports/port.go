@@ -18,10 +18,12 @@ type UserService interface {
 	GetUser(id int) (domain.User, error)
 	UpdateUser(user domain.User) error
 	DeleteUser(id int) error
-	CheckToken(token string, blacklist UserBlackList) bool
+	Logout(token string)
 }
 
 type UserBlackList interface {
 	AddUserBlackList(userId int)
 	IsUserBlackListed(userId int) bool
+	AddTokenBlackList(token string)
+	IsTokenBlackListed(token string) bool
 }

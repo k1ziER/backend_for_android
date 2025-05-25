@@ -26,14 +26,20 @@ func (h *Handler) userIdentity(next http.Handler) http.Handler {
 			newErrorResponse(w, http.StatusUnauthorized, "invalid auth header")
 			return
 		}
-		black := h.services.User.CheckToken(headerParts[1], h.blackList)
-		if black != true {
+		blackToken := h.blackList.IsTokenBlackListed(headerParts[1])
+		if blackToken == true {
 			newErrorResponse(w, http.StatusUnauthorized, "invalid auth header")
 			return
 		}
 		userId, err := h.services.User.ParseToken(headerParts[1])
 		if err != nil {
 			newErrorResponse(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+
+		blackUser := h.blackList.IsUserBlackListed(userId)
+		if blackUser == true {
+			newErrorResponse(w, http.StatusUnauthorized, "invalid auth header")
 			return
 		}
 

@@ -23,6 +23,7 @@ type tokenClaims struct {
 type UserBlackList struct {
 	UserId map[int]bool
 	mu     sync.RWMutex
+	Token  map[string]bool
 }
 type AuthService struct {
 	repo      ports.UserRepo
@@ -32,6 +33,7 @@ type AuthService struct {
 func NewTokenBlacklist() *UserBlackList {
 	return &UserBlackList{
 		UserId: make(map[int]bool),
+		Token:  make(map[string]bool),
 	}
 }
 
@@ -77,6 +79,10 @@ func (s *AuthService) DeleteUser(id int) error {
 	s.blackList.AddUserBlackList(id)
 
 	return err
+}
+
+func (s *AuthService) Logout(token string) {
+	s.blackList.AddTokenBlackList(token)
 }
 
 func (s *AuthService) GenerateToken(user domain.User) (string, error) {
@@ -140,21 +146,21 @@ func (tb *UserBlackList) AddUserBlackList(userId int) {
 	tb.UserId[userId] = true
 }
 
+func (tb *UserBlackList) AddTokenBlackList(token string) {
+	tb.mu.Lock()
+	defer tb.mu.Unlock()
+
+	tb.Token[token] = true
+}
+
 func (tb *UserBlackList) IsUserBlackListed(userId int) bool {
 	tb.mu.RLock()
 	defer tb.mu.RUnlock()
 	return tb.UserId[userId]
 }
 
-func (s *AuthService) CheckToken(token string, blacklist ports.UserBlackList) bool {
-	userId, err := s.ParseToken(token)
-	if err != nil {
-		logrus.Println(err)
-		return false
-	}
-
-	if blacklist.IsUserBlackListed(userId) {
-		return false
-	}
-	return true
+func (tb *UserBlackList) IsTokenBlackListed(token string) bool {
+	tb.mu.RLock()
+	defer tb.mu.RUnlock()
+	return tb.Token[token]
 }

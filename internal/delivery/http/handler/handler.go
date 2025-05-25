@@ -28,6 +28,7 @@ func (h *Handler) InitRoute() *mux.Router {
 	apiRouter.HandleFunc("/user/", h.GetUser)
 	apiRouter.HandleFunc("/userEdit/", h.PatchUser)
 	apiRouter.HandleFunc("/deleteUsers/", h.DeleteUser)
+	apiRouter.HandleFunc("/logout/", h.Logout)
 
 	return router
 }
