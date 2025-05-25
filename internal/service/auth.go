@@ -9,6 +9,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"unicode"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joho/godotenv"
@@ -45,7 +46,11 @@ func NewAuthService(repo ports.UserRepo, blackList ports.UserBlackList) *AuthSer
 }
 
 func (s *AuthService) CreateUser(user domain.User) (domain.User, error) {
-	user.Password = s.generatePasswordHash(user.Password)
+	password, err := s.validatePassword(user.Password)
+	if err != nil {
+		return user, err
+	}
+	user.Password = s.generatePasswordHash(password)
 	return s.repo.CreateUser(user)
 }
 
@@ -137,6 +142,34 @@ func (s *AuthService) generatePasswordHash(password string) string {
 	hash.Write([]byte(password))
 
 	return fmt.Sprintf("%x", hash.Sum([]byte(os.Getenv("SOLT"))))
+}
+
+func (s *AuthService) validatePassword(password string) (string, error) {
+	hasLower := false
+	hasUpper := false
+	hasSpace := false
+	hasDigit := false
+	hasSpecial := false
+
+	for _, char := range password {
+		switch {
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsDigit(char):
+			hasDigit = true
+		case unicode.IsSpace(char):
+			hasSpace = true
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
+	if hasLower == true && hasDigit == true && hasSpace == false && hasUpper == true && hasSpecial == true {
+		return password, nil
+	}
+
+	return "", errors.New("password is unreliable")
 }
 
 func (tb *UserBlackList) AddUserBlackList(userId int) {
