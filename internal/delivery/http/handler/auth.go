@@ -8,6 +8,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @Summary SignIn
+// @Tags auth
+// @Description This API sign in account
+// @ID sign in
+// @Accept json
+// @Produce json
+// @Param input body domain.User true "account info"
+// @Success 200 {integer} integer
+// @Failure 400,404 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
+// @Failure default {object} handler.ErrorResponse
+// @Router /signIn/ [post]
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	input := domain.User{}
 	//logrus.Println("123")
@@ -48,6 +60,18 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// @Summary SetUser
+// @Tags auth
+// @Description This API create account
+// @ID create account
+// @Accept json
+// @Produce json
+// @Param input body domain.User true "account info"
+// @Success 200 {integer} integer
+// @Failure 400,404 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
+// @Failure default {object} handler.ErrorResponse
+// @Router /createUser/ [post]
 func (h *Handler) SetUser(w http.ResponseWriter, r *http.Request) {
 	input := domain.User{}
 

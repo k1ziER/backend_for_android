@@ -1,0 +1,242 @@
+basePath: /
+definitions:
+  domain.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      login:
+        type: string
+      password:
+        type: string
+      surname:
+        type: string
+      userName:
+        type: string
+    required:
+    - email
+    - login
+    - password
+    - surname
+    - userName
+    type: object
+  handler.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+host: localhost:8090
+info:
+  contact: {}
+  description: API Server for Android client
+  title: AndroidBackend
+  version: "1.0"
+paths:
+  /api/deleteUser/:
+    delete:
+      consumes:
+      - application/json
+      description: This API delete account
+      operationId: delete account
+      parameters:
+      - default: Bearer
+        description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: DeleteUser
+      tags:
+      - api
+  /api/editUser/:
+    patch:
+      consumes:
+      - application/json
+      description: This API edit account
+      operationId: edit account
+      parameters:
+      - description: account info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: PatchUser
+      tags:
+      - api
+  /api/getUser/:
+    get:
+      consumes:
+      - application/json
+      description: This API get account
+      operationId: get account
+      parameters:
+      - default: Bearer
+        description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: GetUser
+      tags:
+      - api
+  /createUser/:
+    post:
+      consumes:
+      - application/json
+      description: This API create account
+      operationId: create account
+      parameters:
+      - description: account info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: SetUser
+      tags:
+      - auth
+  /signIn/:
+    post:
+      consumes:
+      - application/json
+      description: This API sign in account
+      operationId: sign in
+      parameters:
+      - description: account info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: SignIn
+      tags:
+      - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

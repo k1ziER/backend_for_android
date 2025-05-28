@@ -19,6 +19,16 @@ import (
 	"github.com/spf13/viper"
 )
 
+// @title AndroidBackend
+// @version 1.0
+// @description API Server for Android client
+
+// @host localhost:8090
+// @BasePath /
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	err := config.InitConfig()

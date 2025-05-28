@@ -3,7 +3,10 @@ package handler
 import (
 	"android/internal/service"
 
+	_ "android/docs"
+
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Handler struct {
@@ -20,14 +23,17 @@ func NewHandler(service *service.Service, blackList *service.UserBlackList) *Han
 
 func (h *Handler) InitRoute() *mux.Router {
 	router := mux.NewRouter()
+	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8090/swagger/doc.json"), // URL до вашего swagger.json
+	))
 	router.HandleFunc("/signIn/", h.SignIn)
 	router.HandleFunc("/createUser/", h.SetUser)
 
 	apiRouter := router.PathPrefix("/api/").Subrouter()
 	apiRouter.Use(h.userIdentity)
-	apiRouter.HandleFunc("/user/", h.GetUser)
+	apiRouter.HandleFunc("/getUser/", h.GetUser)
 	apiRouter.HandleFunc("/editUser/", h.PatchUser)
-	apiRouter.HandleFunc("/deleteUsers/", h.DeleteUser)
+	apiRouter.HandleFunc("/deleteUser/", h.DeleteUser)
 	apiRouter.HandleFunc("/logout/", h.Logout)
 
 	return router

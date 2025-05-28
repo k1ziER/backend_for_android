@@ -9,6 +9,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @Summary GetUser
+// @Security ApiKeyAuth
+// @Tags api
+// @Description This API get account
+// @ID get account
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer {token}" default(Bearer )
+// @Success 200 {integer} integer
+// @Failure 400,404 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
+// @Failure default {object} handler.ErrorResponse
+// @Router /api/getUser/ [get]
 func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(userCtx)
 
@@ -27,6 +40,19 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// @Summary PatchUser
+// @Security ApiKeyAuth
+// @Tags api
+// @Description This API edit account
+// @ID edit account
+// @Accept json
+// @Produce json
+// @Param input body domain.User true "account info"
+// @Success 200 {integer} integer
+// @Failure 400,404 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
+// @Failure default {object} handler.ErrorResponse
+// @Router /api/editUser/ [patch]
 func (h *Handler) PatchUser(w http.ResponseWriter, r *http.Request) {
 	input := domain.User{}
 	userId := r.Context().Value(userCtx)
@@ -66,6 +92,19 @@ func (h *Handler) PatchUser(w http.ResponseWriter, r *http.Request) {
 	}(input)
 }
 
+// @Summary DeleteUser
+// @Security ApiKeyAuth
+// @Tags api
+// @Description This API delete account
+// @ID delete account
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer {token}" default(Bearer )
+// @Success 200 {integer} integer
+// @Failure 400,404 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
+// @Failure default {object} handler.ErrorResponse
+// @Router /api/deleteUser/ [delete]
 func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(userCtx)
 

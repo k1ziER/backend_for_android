@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type error struct {
+type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
@@ -15,7 +15,7 @@ func newErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 	logrus.Error(message)
 
 	w.WriteHeader(statusCode)
-	err := json.NewEncoder(w).Encode(error{Message: message})
+	err := json.NewEncoder(w).Encode(ErrorResponse{Message: message})
 	if err != nil {
 		logrus.Println(err)
 		return

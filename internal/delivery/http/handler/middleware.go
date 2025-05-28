@@ -21,17 +21,13 @@ func (h *Handler) userIdentity(next http.Handler) http.Handler {
 			return
 		}
 
-		headerParts := strings.Split(header, " ")
-		if len(headerParts) != 2 {
-			newErrorResponse(w, http.StatusUnauthorized, "invalid auth header")
-			return
-		}
-		blackToken := h.blackList.IsTokenBlackListed(headerParts[1])
+		headerParts := strings.Replace(header, "Bearer ", "", 1)
+		blackToken := h.blackList.IsTokenBlackListed(headerParts)
 		if blackToken == true {
 			newErrorResponse(w, http.StatusUnauthorized, "invalid auth header")
 			return
 		}
-		userId, err := h.services.User.ParseToken(headerParts[1])
+		userId, err := h.services.User.ParseToken(headerParts)
 		if err != nil {
 			newErrorResponse(w, http.StatusUnauthorized, err.Error())
 			return
