@@ -33,19 +33,53 @@ info:
   title: AndroidBackend
   version: "1.0"
 paths:
+  /api/createTicket/:
+    post:
+      consumes:
+      - application/json
+      description: This API create ticket
+      operationId: create ticket
+      parameters:
+      - description: account info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: CreateTicket
+      tags:
+      - api
   /api/deleteUser/:
     delete:
       consumes:
       - application/json
       description: This API delete account
       operationId: delete account
-      parameters:
-      - default: Bearer
-        description: Bearer {token}
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -121,13 +155,6 @@ paths:
       - application/json
       description: This API get account
       operationId: get account
-      parameters:
-      - default: Bearer
-        description: Bearer {token}
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -154,6 +181,40 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: GetUser
+      tags:
+      - api
+  /api/logout/:
+    post:
+      consumes:
+      - application/json
+      description: This API logout account
+      operationId: logout account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Logout
       tags:
       - api
   /createUser/:

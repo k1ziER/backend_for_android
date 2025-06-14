@@ -21,6 +21,14 @@ type tokenClaims struct {
 	UserId int `json:"user_id"`
 }
 
+type tokenTicketClaims struct {
+	jwt.StandardClaims
+	UserId          int       `json:"user_id"`
+	TitleAttraction string    `json:"title_attraction"`
+	Date            time.Time `json:"date"`
+	Count           int       `json:"count"`
+}
+
 type UserBlackList struct {
 	UserId map[int]bool
 	mu     sync.RWMutex
@@ -109,6 +117,28 @@ func (s *AuthService) GenerateToken(user domain.User) (string, error) {
 	return token.SignedString([]byte(os.Getenv("SIGN_KEY")))
 }
 
+func (s *AuthService) CreateTicket(id int, ticket domain.Ticket) (string, error) {
+	err := godotenv.Load()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	const tokenTTL = 3 * time.Hour
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenTicketClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+		UserId:          id,
+		TitleAttraction: ticket.TitleAttraction,
+		Date:            ticket.Date,
+		Count:           ticket.Count,
+	})
+
+	return token.SignedString([]byte(os.Getenv("SIGN_KEY")))
+}
+
 func (s *AuthService) ParseToken(accessToken string) (int, error) {
 	err := godotenv.Load()
 	if err != nil {
@@ -130,6 +160,33 @@ func (s *AuthService) ParseToken(accessToken string) (int, error) {
 	}
 
 	return claims.UserId, nil
+}
+
+func (s *AuthService) ParseTicketToken(accessToken string) (domain.Ticket, error) {
+	err := godotenv.Load()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	token, err := jwt.ParseWithClaims(accessToken, &tokenTicketClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+		return []byte(os.Getenv("SIGN_KEY")), nil
+	})
+	if err != nil {
+		return domain.Ticket{}, err
+	}
+
+	claims, ok := token.Claims.(*tokenTicketClaims)
+	if !ok {
+		return domain.Ticket{}, errors.New("token claims are not of type *tokenClaims")
+	}
+
+	return domain.Ticket{
+		TitleAttraction: claims.TitleAttraction,
+		Date:            claims.Date,
+		Count:           claims.Count,
+	}, nil
 }
 
 func (s *AuthService) generatePasswordHash(password string) string {

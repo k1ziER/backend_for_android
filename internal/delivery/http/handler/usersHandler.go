@@ -6,8 +6,19 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 )
+
+var countTicket int
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 // @Summary GetUser
 // @Security ApiKeyAuth
@@ -16,7 +27,6 @@ import (
 // @ID get account
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer {token}" default(Bearer )
 // @Success 200 {integer} integer
 // @Failure 400,404 {object} handler.ErrorResponse
 // @Failure 500 {object} handler.ErrorResponse
@@ -99,7 +109,6 @@ func (h *Handler) PatchUser(w http.ResponseWriter, r *http.Request) {
 // @ID delete account
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer {token}" default(Bearer )
 // @Success 200 {integer} integer
 // @Failure 400,404 {object} handler.ErrorResponse
 // @Failure 500 {object} handler.ErrorResponse
@@ -119,6 +128,18 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// @Summary Logout
+// @Security ApiKeyAuth
+// @Tags api
+// @Description This API logout account
+// @ID logout account
+// @Accept json
+// @Produce json
+// @Success 200 {integer} integer
+// @Failure 400,404 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
+// @Failure default {object} handler.ErrorResponse
+// @Router /api/logout/ [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(userCtx)
 	id, _ := userId.(int)
@@ -141,4 +162,92 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"logout": id,
 	})
+}
+
+// @Summary CreateTicket
+// @Security ApiKeyAuth
+// @Tags api
+// @Description This API create ticket
+// @ID create ticket
+// @Accept json
+// @Produce json
+// @Param input body domain.User true "account info"
+// @Success 200 {integer} integer
+// @Failure 400,404 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
+// @Failure default {object} handler.ErrorResponse
+// @Router /api/createTicket/ [post]
+func (h *Handler) CreateTicket(w http.ResponseWriter, r *http.Request) {
+
+	countTicket++
+	userId := r.Context().Value(userCtx)
+
+	id, _ := userId.(int)
+
+	input := domain.Ticket{}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&input); err != nil {
+		newErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	token, err := h.services.User.CreateTicket(id, input)
+	if err != nil {
+		logrus.Println(err)
+	}
+
+	ticket, err := h.services.User.ParseTicketToken(token)
+	if err != nil {
+		logrus.Println(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"titleAttraction": ticket.TitleAttraction,
+		"countTicket":     countTicket,
+	})
+}
+
+// @Summary WebSocket
+// @Tags api
+// @Description This API connect to chat
+// @ID connect chat
+// @Accept json
+// @Produce json
+// @Success 200 {integer} integer
+// @Failure 400,404 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
+// @Failure default {object} handler.ErrorResponse
+// @Router /api/websocket/ [post]
+func (h *Handler) WebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		logrus.Println(err)
+		return
+	}
+	defer func() error {
+		err = conn.Close()
+		if err != nil {
+			logrus.Println(err)
+			return err
+		}
+		return err
+	}()
+
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			logrus.Println(err)
+			return
+		}
+
+		logrus.Printf("Received message: %s", message)
+
+		err = conn.WriteMessage(websocket.TextMessage, message)
+		if err != nil {
+			logrus.Println(err)
+			return
+		}
+	}
 }

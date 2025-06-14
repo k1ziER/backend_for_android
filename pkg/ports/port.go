@@ -1,6 +1,8 @@
 package ports
 
-import "android/pkg/domain"
+import (
+	"android/pkg/domain"
+)
 
 type UserRepo interface {
 	CreateUser(user domain.User) (domain.User, error)
@@ -19,6 +21,8 @@ type UserService interface {
 	UpdateUser(user domain.User) error
 	DeleteUser(id int) error
 	Logout(token string)
+	CreateTicket(id int, input domain.Ticket) (string, error)
+	ParseTicketToken(accessToken string) (domain.Ticket, error)
 }
 
 type UserBlackList interface {
