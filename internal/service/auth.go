@@ -3,6 +3,7 @@ package service
 import (
 	"android/pkg/domain"
 	"android/pkg/ports"
+	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
@@ -12,9 +13,12 @@ import (
 	"unicode"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
+
+const numberOfKeysForKafka = 20
 
 type tokenClaims struct {
 	jwt.StandardClaims
@@ -66,9 +70,9 @@ func (s *AuthService) UpdateUser(user domain.User) error {
 	return s.repo.UpdateUser(user)
 }
 
-func (s *AuthService) SignIn(login, password string) (domain.User, error) {
+func (s *AuthService) SignIn(ctx context.Context, login, password string) (domain.User, error) {
 	hashPassword := s.generatePasswordHash(password)
-	user, err := s.repo.SignIn(login, hashPassword)
+	user, err := s.repo.SignIn(ctx, login, hashPassword)
 	if err != nil {
 		logrus.Println(err)
 		return user, err
@@ -76,8 +80,8 @@ func (s *AuthService) SignIn(login, password string) (domain.User, error) {
 	return user, nil
 }
 
-func (s *AuthService) GetUser(id int) (domain.User, error) {
-	user, err := s.repo.GetUser(id)
+func (s *AuthService) GetUser(ctx context.Context, id int) (domain.User, error) {
+	user, err := s.repo.GetUser(ctx, id)
 	if err != nil {
 		logrus.Println(err)
 	}
@@ -253,4 +257,11 @@ func (tb *UserBlackList) IsTokenBlackListed(token string) bool {
 	tb.mu.RLock()
 	defer tb.mu.RUnlock()
 	return tb.Token[token]
+}
+
+func (s *AuthService) GenerateUUIDString() string {
+	sliceByte := make([]byte, numberOfKeysForKafka)
+	uuids := string(sliceByte)
+	uuids = uuid.NewString()
+	return uuids
 }

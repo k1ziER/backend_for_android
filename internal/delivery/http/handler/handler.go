@@ -28,6 +28,7 @@ func (h *Handler) InitRoute() *mux.Router {
 	))
 	router.HandleFunc("/signIn/", h.SignIn)
 	router.HandleFunc("/createUser/", h.SetUser)
+	router.HandleFunc("/sendToKafka", h.SendToKafka)
 
 	apiRouter := router.PathPrefix("/api/").Subrouter()
 	apiRouter.Use(h.userIdentity)

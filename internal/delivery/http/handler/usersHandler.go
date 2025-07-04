@@ -1,12 +1,16 @@
 package handler
 
 import (
+	"android/internal/kafka"
 	"android/pkg/domain"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,9 +38,10 @@ var upgrader = websocket.Upgrader{
 // @Router /api/getUser/ [get]
 func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(userCtx)
+	ctx := r.Context()
 
 	id, _ := userId.(int)
-	user, err := h.services.User.GetUser(id)
+	user, err := h.services.User.GetUser(ctx, id)
 	if err != nil {
 		logrus.Println(err)
 	}
@@ -88,18 +93,20 @@ func (h *Handler) PatchUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"token": token,
 	})
-	go func(input domain.User) {
-		data, err := json.Marshal(&input)
-		if err != nil {
-			logrus.Println(err)
-			return
-		}
+	err = godotenv.Load()
+	var adress []string
+	adress = append(adress, os.Getenv("kafka1"), os.Getenv("kafka2"), os.Getenv("kafka3"))
 
-		//на месте этой заглушки должна быть кафка
-		if data == nil {
-			logrus.Println(data)
-		}
-	}(input)
+	p, err := kafka.NewProducer(adress)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	message := strings.Join([]string{input.Login, input.Password, input.UserName, *input.Surname, input.Email}, " ")
+	key := h.services.User.GenerateUUIDString()
+	err = p.Produce(message, topic, key)
+	if err != nil {
+		logrus.Println("Error in produce kafka: %w", err.Error())
+	}
 }
 
 // @Summary DeleteUser
@@ -126,6 +133,20 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"deletedId": id,
 	})
+	err = godotenv.Load()
+	var adress []string
+	adress = append(adress, os.Getenv("kafka1"), os.Getenv("kafka2"), os.Getenv("kafka3"))
+
+	p, err := kafka.NewProducer(adress)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	message := fmt.Sprintf("deleted user: %v", id)
+	key := h.services.User.GenerateUUIDString()
+	err = p.Produce(message, topic, key)
+	if err != nil {
+		logrus.Println("Error in produce kafka: %w", err.Error())
+	}
 }
 
 // @Summary Logout

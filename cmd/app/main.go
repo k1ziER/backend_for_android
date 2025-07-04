@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -12,6 +13,7 @@ import (
 
 	"android/internal/config"
 	"android/internal/delivery/http/handler"
+	"android/internal/redis"
 	"android/internal/repository"
 	"android/internal/server"
 	"android/internal/service"
@@ -40,6 +42,17 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	adress := os.Getenv("redis")
+
+	cacheTTL := time.Hour
+
+	redisClient := redis.NewRedisClient(adress, "", 0, cacheTTL)
+	defer redisClient.Close()
+
+	// Проверка соединения
+	if err := redisClient.Ping(context.Background()); err != nil {
+		logrus.Fatalf("Failed to connect to Redis: %v", err)
+	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
 		Host:     viper.GetString("db.host"),
@@ -54,7 +67,7 @@ func main() {
 	}
 
 	blacklist := service.NewTokenBlacklist()
-	repos := repository.NewRepository(db)
+	repos := repository.NewRepository(db, redisClient)
 	service := service.NewService(repos, blacklist)
 	handlers := handler.NewHandler(service, blacklist)
 
@@ -81,4 +94,5 @@ func main() {
 	if err != nil {
 		logrus.Errorf("error occured on db connection close: %s", err.Error())
 	}
+
 }
